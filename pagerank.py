@@ -80,7 +80,54 @@ def sample_pagerank(corpus, damping_factor, n):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
-    raise NotImplementedError
+
+    # step one:
+
+    # page rank is dict key: represent page name and value: represent score
+    # as initial step score for all pages = 0
+    pagerank = {page: 0 for page in corpus}
+
+    # simulate a 5000 or n sample of search process
+    # damping_factor : mean probability of none random page selection
+    for _ in range(n):
+
+        # choice random page name
+        page = random.choice(list(corpus.keys()))
+
+        while True:
+            # At first: add visit to current page
+            pagerank[page] += 1
+
+            # In normal state a user visit other pages that are linked to from the current page
+            # a while loop simulate this behavior :
+
+            # if a random number is less than dumping factor
+            # 1- select another page that current page linked to
+            # 2- continue loop with the new page
+
+            # else break loop
+
+            if random.random() < damping_factor:
+                # linked_pages store a list of linked page
+                # Value of page key in corpus dict
+                linked_pages = corpus[page]
+
+                if linked_pages:  # check if list isn't null
+                    # choice random page from list
+                    page = random.choice(list(linked_pages))
+                else:
+                    # else select random page from corpus
+                    page = random.choice(list(corpus.keys()))
+            else:
+                break
+
+    # step two: normalize pages score
+    total_score = sum(list(pagerank.values()))  # calc sum of pages score
+    pages_rank = {page: score/total_score for page, score in pagerank.items()}
+    # create a page rank dict
+    # keys : is list of pages
+    # value : is previous score divide by total score
+    return pages_rank  # return dict
 
 
 def iterate_pagerank(corpus, damping_factor):
