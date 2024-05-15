@@ -27,7 +27,7 @@ def main():
     for page in sorted(ranks):
         print(f"  {page}: {ranks[page]:.4f}")  # :.4f to print only 4 place after floating-point
     ranks = iterate_pagerank(corpus, DAMPING)
-    print(f"PageRank R esults from Iteration")
+    print(f"PageRank Results from Iteration")
     for page in sorted(ranks):
         print(f"  {page}: {ranks[page]:.4f}")
 
@@ -68,7 +68,38 @@ def transition_model(corpus, page, damping_factor):
     linked to by `page`. With probability `1 - damping_factor`, choose
     a link at random chosen from all pages in the corpus.
     """
-    raise NotImplementedError
+    # step one : calc probability of liked pages
+    # assume linked page have equal probability to choice
+    # for each linked page probability of page = damping_factor/total number of linked page
+
+    linked_page = list(corpus[page])  # store linked pages in list
+    if len(linked_page) > 0:  # if list isn't null
+        # calc probability for each pages
+        transition_model_dict = {page: damping_factor / len(linked_page) for page in linked_page}
+    else:
+        # initialize an empty dict
+        transition_model_dict = {}
+        damping_factor = 0
+
+    # step two : calc probability of other pages
+    # same thing assume other page have equal probability to choice
+    # for each non_linked page probability of page = (1 - damping_factor)/ total number of none linked page
+    # by using this two equation sum of probability = 1
+
+    # this condition line store all none_linked_page in list
+    none_linked_pages = [none_linked_page for none_linked_page in corpus.keys() if none_linked_page not in linked_page]
+    if len(none_linked_pages) > 0:
+        transition_model_dict.update(
+            {page: (1 - damping_factor) / len(none_linked_pages) for page in none_linked_pages})
+    else:
+        """
+            back to calc a linked pages with new damping_factor = 1
+            Using recursion in this case is the best option
+        """
+        if damping_factor != 0:
+            transition_model(corpus, page, 1)
+
+    return transition_model_dict
 
 
 def sample_pagerank(corpus, damping_factor, n):
@@ -139,8 +170,7 @@ def iterate_pagerank(corpus, damping_factor):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
-    raise NotImplementedError
-
+    raise "not implement"
 
 if __name__ == "__main__":
     main()
