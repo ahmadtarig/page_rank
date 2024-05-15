@@ -170,35 +170,29 @@ def iterate_pagerank(corpus, damping_factor):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
-    # step one: calc a base probability of each page
+    # Step one :
+    # clac rank using transition_model
+    pagerank = {page: 0 for page in corpus.keys()}  # initialize a dict with key pages and value 0
+    for page in corpus.keys():  # outer loop for all pages in corpus
+        transition_model_dict = transition_model(corpus, page, damping_factor)  # use transition_model function
+        for key, value in transition_model_dict.items():  # transition model out put is ranking for page
+            pagerank[key] += value  # increment a rank for each page in linked page
 
-    # 1 - damping_factor / total number of pages
-    # base rank based on one rule all page have same probability * 1 - damping_factor
-    base_rank_score = (1 - damping_factor) / len(corpus)
-    base_rank = {page: base_rank_score for page in corpus.keys()}
-    # link rank based on probability to reach page from other page
-    link_rank = {page: 0 for page in corpus.keys()}  # initial score is 0 for all pages
+    # Step two :
+    # calc rank using previous knowledge, pagerank
+    # initialize a dict with key pages and value (1 - damping_factor)/len(corpus) its probability of reach page
+    new_pagerank = {page:  (1 - damping_factor)/len(corpus) for page in corpus.keys()}
+    for page, linked_pages in corpus.items():  # outer loop for corpus items
+        for linked_page in linked_pages:  # inner loop for linked pages
+            new_pagerank[linked_page] += pagerank[page] * damping_factor/len(linked_pages)
+            # using en equation p_rank(page) * damping/number of linked page
 
-    # step two: clac link rank
+    # step three:
+    # normalize a pagerank 0 - 1
+    total = sum(new_pagerank.values())  # calc a total score
+    new_pagerank = {page: rank/total for page, rank in new_pagerank.items()}  # score /= total score
 
-    # each page have probability to reach page from p(page1) + p(page2) , ...
-    # p(page) = damping_factor * probability of reach current page / number of linked page
-    # loop for all corpus items
-    for current_page, linked_pages in corpus.items():
-        # nested loop
-        for page in linked_pages:
-            # increment a link rank for each linked_page using previous probability equation
-            link_rank[page] += base_rank[current_page] * damping_factor / len(linked_pages)
-
-    # step three: calc total_rank
-    # total_rank for each page = base_rank_score + link_rank_score(page)
-    total_rank = {page: link_rank_score + base_rank_score for page, link_rank_score in link_rank.items()}
-
-    # step four: normalize a score (from 0 to 1)
-    total_score = sum(total_rank.values())  # calc total score
-    total_rank = {page: score / total_score for page, score in total_rank.items()}  # score /= total score
-
-    return total_rank
+    return new_pagerank
 
 
 if __name__ == "__main__":
