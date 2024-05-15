@@ -170,7 +170,36 @@ def iterate_pagerank(corpus, damping_factor):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
-    raise "not implement"
+    # step one: calc a base probability of each page
+
+    # 1 - damping_factor / total number of pages
+    # base rank based on one rule all page have same probability * 1 - damping_factor
+    base_rank_score = (1 - damping_factor) / len(corpus)
+    base_rank = {page: base_rank_score for page in corpus.keys()}
+    # link rank based on probability to reach page from other page
+    link_rank = {page: 0 for page in corpus.keys()}  # initial score is 0 for all pages
+
+    # step two: clac link rank
+
+    # each page have probability to reach page from p(page1) + p(page2) , ...
+    # p(page) = damping_factor * probability of reach current page / number of linked page
+    # loop for all corpus items
+    for current_page, linked_pages in corpus.items():
+        # nested loop
+        for page in linked_pages:
+            # increment a link rank for each linked_page using previous probability equation
+            link_rank[page] += base_rank[current_page] * damping_factor / len(linked_pages)
+
+    # step three: calc total_rank
+    # total_rank for each page = base_rank_score + link_rank_score(page)
+    total_rank = {page: link_rank_score + base_rank_score for page, link_rank_score in link_rank.items()}
+
+    # step four: normalize a score (from 0 to 1)
+    total_score = sum(total_rank.values())  # calc total score
+    total_rank = {page: score / total_score for page, score in total_rank.items()}  # score /= total score
+
+    return total_rank
+
 
 if __name__ == "__main__":
     main()
