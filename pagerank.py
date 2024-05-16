@@ -9,23 +9,23 @@ SAMPLES = 10000
 
 def main():
     """
-    sys.argv is list of words wrote in cmd or terminal to run this file
-    len(sys.argv) mean number of words
+    sys.argv is a list of words written in the command line or terminal to run this file.
+    len(sys.argv) represents the number of words.
     """
-    if len(sys.argv) != 2:  # if condition true that means user does not select direction
-        sys.exit("Usage: python pagerank.py corpus")  # exit file with this massage
-    direction = sys.argv[1]  # store direction or  name
-    corpus = crawl(direction)  # parce a relation in dict variable example :
-    #  {
+    if len(sys.argv) != 2:  # If this condition is true, it means the user did not select a directory.
+        sys.exit("Usage: python pagerank.py corpus")  # Exit the file with this message.
+    directory = sys.argv[1]  # Store the directory or name.
+    corpus = crawl(directory)  # Parse a relation into a dictionary variable. Example:
+    # {
     #  '1.html': {'2.html'},
     #  '2.html': {'3.html', '1.html'},
     #  '3.html': {'2.html', '4.html'},
     #  '4.html': {'2.html'}
-    #  }
+    # }
     ranks = sample_pagerank(corpus, DAMPING, SAMPLES)
     print(f"PageRank Results from Sampling (n = {SAMPLES})")
     for page in sorted(ranks):
-        print(f"  {page}: {ranks[page]:.4f}")  # :.4f to print only 4 place after floating-point
+        print(f"  {page}: {ranks[page]:.4f}")  # :.4f to print only 4 places after the floating-point.
     ranks = iterate_pagerank(corpus, DAMPING)
     print(f"PageRank Results from Iteration")
     for page in sorted(ranks):
@@ -68,33 +68,33 @@ def transition_model(corpus, page, damping_factor):
     linked to by `page`. With probability `1 - damping_factor`, choose
     a link at random chosen from all pages in the corpus.
     """
-    # step one : calc probability of liked pages
-    # assume linked page have equal probability to choice
-    # for each linked page probability of page = damping_factor/total number of linked page
+    # Step one: calculate the probability of linked pages.
+    # Assume linked pages have equal probability to be chosen.
+    # For each linked page, the probability = damping_factor / total number of linked pages.
 
-    linked_page = list(corpus[page])  # store linked pages in list
-    if len(linked_page) > 0:  # if list isn't null
-        # calc probability for each pages
-        transition_model_dict = {page: damping_factor / len(linked_page) for page in linked_page}
+    linked_pages = list(corpus[page])  # Store linked pages in a list.
+    if len(linked_pages) > 0:  # If the list isn't empty.
+        # Calculate probability for each page.
+        transition_model_dict = {page: damping_factor / len(linked_pages) for page in linked_pages}
     else:
-        # initialize an empty dict
+        # Initialize an empty dictionary.
         transition_model_dict = {}
         damping_factor = 0
 
-    # step two : calc probability of other pages
-    # same thing assume other page have equal probability to choice
-    # for each non_linked page probability of page = (1 - damping_factor)/ total number of none linked page
-    # by using this two equation sum of probability = 1
+    # Step two: calculate the probability of other pages.
+    # Assume other pages have equal probability to be chosen.
+    # For each non-linked page, the probability = (1 - damping_factor) / total number of non-linked pages.
+    # By using these two equations, the sum of probabilities equals 1.
 
-    # this condition line store all none_linked_page in list
-    none_linked_pages = [none_linked_page for none_linked_page in corpus.keys() if none_linked_page not in linked_page]
-    if len(none_linked_pages) > 0:
+    # This line stores all non-linked pages in a list.
+    non_linked_pages = [non_linked_page for non_linked_page in corpus.keys() if non_linked_page not in linked_pages]
+    if len(non_linked_pages) > 0:
         transition_model_dict.update(
-            {page: (1 - damping_factor) / len(none_linked_pages) for page in none_linked_pages})
+            {page: (1 - damping_factor) / len(non_linked_pages) for page in non_linked_pages})
     else:
         """
-            back to calc a linked pages with new damping_factor = 1
-            Using recursion in this case is the best option
+        Return to calculating linked pages with a new damping_factor = 1
+        Using recursion in this case is the best option.
         """
         if damping_factor != 0:
             transition_model(corpus, page, 1)
@@ -105,60 +105,46 @@ def transition_model(corpus, page, damping_factor):
 def sample_pagerank(corpus, damping_factor, n):
     """
     Return PageRank values for each page by sampling `n` pages
-    according to transition model, starting with a page at random.
+    according to the transition model, starting with a page at random.
 
     Return a dictionary where keys are page names, and values are
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
 
-    # step one:
+    # Step one:
 
-    # page rank is dict key: represent page name and value: represent score
-    # as initial step score for all pages = 0
+    # Initialize PageRank values for each page as 0.
     pagerank = {page: 0 for page in corpus}
 
-    # simulate a 5000 or n sample of search process
-    # damping_factor : mean probability of none random page selection
+    # Simulate `n` random page visits according to the transition model.
+    # `damping_factor`: probability of choosing a linked page.
     for _ in range(n):
 
-        # choice random page name
+        # Choose a random page to start.
         page = random.choice(list(corpus.keys()))
 
         while True:
-            # At first: add visit to current page
+            # Add a visit to the current page.
             pagerank[page] += 1
 
-            # In normal state a user visit other pages that are linked to from the current page
-            # a while loop simulate this behavior :
-
-            # if a random number is less than dumping factor
-            # 1- select another page that current page linked to
-            # 2- continue loop with the new page
-
-            # else break loop
-
+            # Explore other linked pages if a random number is less than the damping factor.
+            # Otherwise, break the loop.
             if random.random() < damping_factor:
-                # linked_pages store a list of linked page
-                # Value of page key in corpus dict
                 linked_pages = corpus[page]
 
-                if linked_pages:  # check if list isn't null
-                    # choice random page from list
-                    page = random.choice(list(linked_pages))
+                if linked_pages:  # Check if the list isn't empty.
+                    page = random.choice(list(linked_pages))  # Choose a random linked page.
                 else:
-                    # else select random page from corpus
-                    page = random.choice(list(corpus.keys()))
+                    page = random.choice(list(corpus.keys()))  # Choose a random page from all pages.
             else:
                 break
 
-    # step two: normalize pages score
-    total_score = sum(list(pagerank.values()))  # calc sum of pages score
-    pages_rank = {page: score/total_score for page, score in pagerank.items()}
-    # create a page rank dict
-    # keys : is list of pages
-    # value : is previous score divide by total score
-    return pages_rank  # return dict
+    # Step two: Normalize page scores.
+    total_score = sum(list(pagerank.values()))  # Calculate the sum of page scores.
+    pages_rank = {page: score / total_score for page, score in pagerank.items()}
+    # Create a PageRank dictionary where values are normalized scores.
+    return pages_rank  # Return the PageRank dictionary.
 
 
 def iterate_pagerank(corpus, damping_factor):
@@ -170,27 +156,28 @@ def iterate_pagerank(corpus, damping_factor):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
-    # Step one :
-    # clac rank using transition_model
-    pagerank = {page: 0 for page in corpus.keys()}  # initialize a dict with key pages and value 0
-    for page in corpus.keys():  # outer loop for all pages in corpus
-        transition_model_dict = transition_model(corpus, page, damping_factor)  # use transition_model function
-        for key, value in transition_model_dict.items():  # transition model out put is ranking for page
-            pagerank[key] += value  # increment a rank for each page in linked page
+    # Step one:
+    # Calculate ranks using the transition_model.
+    pagerank = {page: 0 for page in corpus.keys()}  # Initialize a dictionary with keys as pages and values as 0.
+    for page in corpus.keys():  # Iterate through all pages in the corpus.
+        transition_model_dict = transition_model(corpus, page, damping_factor)  # Use the transition_model function.
+        for key, value in transition_model_dict.items():  # Iterate through the transition model's output.
+            pagerank[key] += value  # Increment the rank for each page in the linked pages.
 
-    # Step two :
-    # calc rank using previous knowledge, pagerank
-    # initialize a dict with key pages and value (1 - damping_factor)/len(corpus) its probability of reach page
-    new_pagerank = {page:  (1 - damping_factor)/len(corpus) for page in corpus.keys()}
-    for page, linked_pages in corpus.items():  # outer loop for corpus items
-        for linked_page in linked_pages:  # inner loop for linked pages
-            new_pagerank[linked_page] += pagerank[page] * damping_factor/len(linked_pages)
-            # using en equation p_rank(page) * damping/number of linked page
+    # Step two:
+    # Calculate ranks using previous knowledge, pagerank.
+    # Initialize a dictionary with keys as pages and values as (1 - damping_factor) / len(corpus),
+    # representing the probability of reaching each page.
+    new_pagerank = {page: (1 - damping_factor) / len(corpus) for page in corpus.keys()}
+    for page, linked_pages in corpus.items():  # Iterate through corpus items.
+        for linked_page in linked_pages:  # Iterate through linked pages.
+            new_pagerank[linked_page] += pagerank[page] * damping_factor / len(linked_pages)
+            # Update the PageRank using the equation: pagerank(page) * damping_factor / number of linked pages.
 
-    # step three:
-    # normalize a pagerank 0 - 1
-    total = sum(new_pagerank.values())  # calc a total score
-    new_pagerank = {page: rank/total for page, rank in new_pagerank.items()}  # score /= total score
+    # Step three:
+    # Normalize the pagerank values to be between 0 and 1.
+    total = sum(new_pagerank.values())  # Calculate the total score.
+    new_pagerank = {page: rank / total for page, rank in new_pagerank.items()}  # Divide each score by the total score.
 
     return new_pagerank
 
